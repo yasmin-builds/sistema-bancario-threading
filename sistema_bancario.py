@@ -1,23 +1,22 @@
+# Henrique Weirich Meurer Siegel - 1230112678
+# Luiz Henrique de Oliveira Duque - 1230113418
+# Yasmin Mana Castilho de Macedo - 1230110034
+
 import threading
 import time
-import random
+import random 
 
+# Memória compartilhada entre as threads
+saldo = 1000.0
+lock = threading.Lock()
+historico = []
 
-#  MEMÓRIA COMPARTILHADA
-
-saldo = 1000.0  # variável compartilhada entre threads
-lock = threading.Lock()  # mecanismo de sincronização
-historico = []  # log compartilhado de transações
-
-#  FUNÇÕES DAS THREADS
-
+# Thread de depósito — adiciona valor ao saldo
 def depositar(nome, valor, repeticoes):
-    """Thread de depósito — acessa e modifica saldo compartilhado."""
     global saldo
     for i in range(repeticoes):
-        time.sleep(random.uniform(0.1, 0.4))  # simula tempo de processamento
-
-        with lock:  # ← LOCK: região crítica
+        time.sleep(random.uniform(0.1, 0.4))
+        with lock:  # região crítica
             saldo_anterior = saldo
             saldo += valor
             msg = (
@@ -27,14 +26,12 @@ def depositar(nome, valor, repeticoes):
             historico.append(msg)
             print(msg)
 
-
+# Thread de saque — remove valor do saldo se houver saldo suficiente
 def sacar(nome, valor, repeticoes):
-    """Thread de saque — acessa e modifica saldo compartilhado."""
     global saldo
     for i in range(repeticoes):
-        time.sleep(random.uniform(0.1, 0.4))  # simula tempo de processamento
-
-        with lock:  # ← LOCK: região crítica
+        time.sleep(random.uniform(0.1, 0.4))
+        with lock:  # região crítica
             if saldo >= valor:
                 saldo_anterior = saldo
                 saldo -= valor
@@ -50,9 +47,8 @@ def sacar(nome, valor, repeticoes):
             historico.append(msg)
             print(msg)
 
-
+# Thread de monitoramento — lê o saldo periodicamente sem modificar
 def monitorar(intervalo, duracao):
-    """Thread de monitoramento — lê saldo periodicamente (somente leitura)."""
     global saldo
     inicio = time.time()
     while time.time() - inicio < duracao:
@@ -63,24 +59,20 @@ def monitorar(intervalo, duracao):
                 f"Transações: {len(historico)}\n"
             )
 
-#  PROGRAMA PRINCIPAL
-
+# Programa principal — cria e inicia as threads
 if __name__ == "__main__":
     print("=" * 60)
-    print("       🏦 SISTEMA BANCÁRIO CONCORRENTE")
+    print("🏦 SISTEMA BANCÁRIO CONCORRENTE")
     print("=" * 60)
     print(f"  Saldo inicial: R${saldo:.2f}")
     print(f"  Threads: Depósito | Saque | Monitor")
     print("=" * 60 + "\n")
 
-    # Criação das threads
-    t1 = threading.Thread(
-        target=depositar, args=("Caixa-01", 200.0, 5), name="Deposito"
-    )
+    t1 = threading.Thread(target=depositar, args=("Caixa-01", 200.0, 5), name="Deposito")
     t2 = threading.Thread(target=sacar, args=("Caixa-02", 150.0, 5), name="Saque")
     t3 = threading.Thread(target=monitorar, args=(1.0, 5), name="Monitor")
 
-    # Inicialização das threads
+    # Inicia as 3 threads ao mesmo tempo
     t1.start()
     t2.start()
     t3.start()
@@ -92,7 +84,7 @@ if __name__ == "__main__":
 
     # Relatório final
     print("\n" + "=" * 60)
-    print("              📋 RELATÓRIO FINAL")
+    print("📋 RELATÓRIO FINAL")
     print("=" * 60)
     print(f"  Saldo inicial:  R$1000.00")
     print(f"  Saldo final:    R${saldo:.2f}")
